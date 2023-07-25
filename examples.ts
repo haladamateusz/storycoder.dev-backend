@@ -1,59 +1,50 @@
 // just short examples for every used library
 
+import process from 'process';
 import dotenv from 'dotenv';
 import { parse as yamlParse, stringify as yamlStringify } from 'yaml';
+import got from 'got'; // https://github.com/sindresorhus/got/issues/2267
 import MarkdownIt from 'markdown-it';
 import { readFileSync } from 'fs';
+
+// had to disable it due to incompatibility with moduleResolution option. See issue above.
+// eslint-disable-next-line import/extensions
 import assert from 'assert';
 import { DOMParser } from 'linkedom';
 import FormData from 'form-data';
 import { constants as HttpConstants } from 'http2';
-// eslint-disable-next-line import/no-unresolved
-import got from 'got';
-// eslint-disable-next-line import/extensions
-import { ExamplesTypes } from './files_for_examples/enums/ExamplesTypes.js';
+import { ExamplesTypes } from '@examples/enums/ExamplesTypes';
 
 // ///////////////////////
 // LOGGERS
 // ///////////////////////
 
-/**
- * @param {string} exampleType
- * @returns {void}
- */
-function printTestHeader(exampleType) {
+function printTestHeader(exampleType: ExamplesTypes): void {
   console.log('\n');
   console.log('// ///////////////////////');
-  console.log(`// ${exampleType} TEST`);
+  console.log(`// ${exampleType as string} TEST`);
   console.log('// ///////////////////////');
 }
 
-/**
- * @param {string} exampleType
- * @returns {void}
- */
-function printTestFooter(exampleType) {
-  console.log(`✅  ${exampleType} PASSED`);
+function printTestFooter(exampleType: ExamplesTypes): void {
+  console.log(`✅  ${exampleType as string} PASSED`);
 }
 
 // ///////////////////////
 // ACTUAL TESTS
 // ///////////////////////
-/**
- * @returns {Promise<void>}
- */
-async function httpExample() {
+async function httpExample(): Promise<void> {
   printTestHeader(ExamplesTypes.HTTP_REQUEST);
 
   // GET /plugins is an endpoint which requires authentication. If this request returns 401, credentials
   // in .env file are invalid
-  const response = await got(`${process.env.WP_URL}/wp-json/wp/v2/plugins?_fields=name`, {
+  const response = await got(`${process.env.WP_URL as string}/wp-json/wp/v2/plugins?_fields=name`, {
     username: process.env.WP_API_USERNAME,
     password: process.env.WP_API_PASSWORD,
     responseType: 'json'
   });
 
-  const plugins = response.body; // body is of type Array<{ name: string }>
+  const plugins = response.body as Array<{ name: string }>;
   assert(response.statusCode === HttpConstants.HTTP_STATUS_OK, '❌  HTTP Request failed!');
   assert(plugins.length, '❌  Plugins are not fetched!');
 
@@ -61,18 +52,14 @@ async function httpExample() {
   printTestFooter(ExamplesTypes.HTTP_REQUEST);
 }
 
-/**
- * @returns {void}
- */
-function dotenvExample() {
+function dotenvExample(): void {
   printTestHeader(ExamplesTypes.DOTENV_CONFIG);
 
-  const getEnvironmentValue = (envPropertyKey) => {
-    const valueFromEnv = process.env[envPropertyKey]; // string or undefined if not set properly
+  const getEnvironmentValue = (envPropertyKey: string): void => {
+    const valueFromEnv: string | undefined = process.env[envPropertyKey];
     assert(valueFromEnv != null, `❌  ${envPropertyKey} is missing!`);
     console.log(`✔️  Value for ${envPropertyKey} has been set. Check twice if set value is correct.`);
   };
-
   dotenv.config();
 
   getEnvironmentValue('WP_API_USERNAME');
@@ -83,10 +70,7 @@ function dotenvExample() {
   printTestFooter(ExamplesTypes.DOTENV_CONFIG);
 }
 
-/**
- * @returns {void}
- */
-function yamlParserExample() {
+function yamlParserExample(): void {
   printTestHeader(ExamplesTypes.YAML);
 
   const firstYaml = readFileSync('./files_for_examples/yaml/first_example.yaml', 'utf8');
@@ -108,10 +92,7 @@ function yamlParserExample() {
   printTestFooter(ExamplesTypes.YAML);
 }
 
-/**
- * @returns {void}
- */
-function markdownParserExample() {
+function markdownParserExample(): void {
   printTestHeader(ExamplesTypes.MD);
 
   const exampleMarkdown = readFileSync('./files_for_examples/md/example.md', 'utf8');
@@ -131,10 +112,7 @@ function markdownParserExample() {
   printTestFooter(ExamplesTypes.MD);
 }
 
-/**
- * @returns {void}
- */
-function exampleLinkeDOM() {
+function exampleLinkeDOM(): void {
   printTestHeader(ExamplesTypes.LINKEDOM);
 
   const exampleHtml = readFileSync('./files_for_examples/html/example.html', 'utf8');
@@ -148,13 +126,11 @@ function exampleLinkeDOM() {
   const paragraphs = document.querySelectorAll('p');
   assert(paragraphs != null, "❌ paragraphs don't exist!");
 
-  // paragraph is of type HTMLParagraphElement
-  paragraphs.forEach((paragraph) => {
-    // node is of type ChildNode
-    paragraph.childNodes.forEach((node) => {
+  paragraphs.forEach((paragraph: HTMLParagraphElement) => {
+    paragraph.childNodes.forEach((node: ChildNode) => {
       if (node.nodeType === TEXT_NODE) {
         // eslint-disable-next-line no-param-reassign
-        node.textContent = `[${node.textContent}]`;
+        node.textContent = `[${node.textContent as string}]`;
       }
     });
   });
@@ -177,7 +153,7 @@ function exampleLinkeDOM() {
   const properHtmlOutput =
     '\n    <p>[a b c]</p>\n    <p>[d e]</p>\n    <p>[f ]<strong>strong</strong>[ g]</p>\n    <div' +
     ' data-solution="ABC"><p>Yay</p></div>\n';
-
+  console.log(JSON.stringify(document.documentElement.innerHTML));
   assert(
     JSON.stringify(properHtmlOutput) === JSON.stringify(document.documentElement.innerHTML),
     '❌ HTML not parsed properly!'
@@ -187,10 +163,7 @@ function exampleLinkeDOM() {
   printTestFooter(ExamplesTypes.LINKEDOM);
 }
 
-/**
- * @returns {void}
- */
-function exampleFormData() {
+function exampleFormData(): void {
   printTestHeader(ExamplesTypes.FORM_DATA);
   const form = new FormData();
   form.append('title', 'Hello World');
@@ -224,16 +197,9 @@ function exampleFormData() {
   printTestFooter(ExamplesTypes.FORM_DATA);
 }
 
-/**
- * @returns {Promise<void>}
- */
-const runExamples = async () => {
-  dotenvExample();
-  await httpExample();
-  yamlParserExample();
-  markdownParserExample();
-  exampleLinkeDOM();
-  exampleFormData();
-};
-
-runExamples().then(() => console.log('\n✅ ✅ ✅  ALL ENTITIES PASSED TESTS! ✅ ✅ ✅ '));
+dotenvExample();
+await httpExample();
+yamlParserExample();
+markdownParserExample();
+exampleLinkeDOM();
+exampleFormData();

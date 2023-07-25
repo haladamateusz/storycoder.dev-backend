@@ -12,7 +12,7 @@ For more details see also : https://github.com/roseTech/storycoder.dev
 3. Install all dependencies: `npm install`
 4. Create an API password within WordPress (/wp-admin/profile.php)
 5. Copy the file `template.env` to `.env` and adapt all the variables inside the `.env` file (use the the API password generated in the previous step)
-6. Run the examples script: `node examples.js` (as long as there is no error, the output does not matter)
+6. Run the examples script: `node examples.ts` (as long as there is no error, the output does not matter)
 7. If this works without any problem, update the frontend: `node update.js`
 
 ## Summary
